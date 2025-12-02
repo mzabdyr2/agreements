@@ -1,8 +1,11 @@
 name: scraper
 
 on:
-  push:               # ← URUCHAMIA SIĘ OD RAZU PO PUSHU
-  workflow_dispatch:  # ← Przyciskiem “Run workflow”
+  push:
+    branches:
+      - main
+    paths:
+      - 'main.py'
 
 jobs:
   scrape:
