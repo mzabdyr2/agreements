@@ -217,6 +217,35 @@ def process_single_provider(prov_row, year, branch, service):
     
     return records
 
+def convert_to_float(df, columns):
+    """Konwertuje kolumny tekstowe z liczbami (polskie formatowanie) na float"""
+    df_copy = df.copy()
+    
+    for col in columns:
+        if col not in df_copy.columns:
+            logger.warning(f"Kolumna '{col}' nie istnieje w DataFrame, pomijam")
+            continue
+        
+        try:
+            # Zamień polski separator (spacja/przecinek) na format angielski
+            df_copy[col] = (
+                df_copy[col]
+                .astype(str)
+                .str.replace(' ', '', regex=False)  # usuń spacje (separator tysięcy)
+                .str.replace(',', '.', regex=False)  # zamień przecinek na kropkę
+                .str.replace('zł', '', regex=False)  # usuń ewentualne "zł"
+                .str.strip()
+            )
+            
+            # Konwertuj na float
+            df_copy[col] = pd.to_numeric(df_copy[col], errors='coerce')
+            
+            logger.info(f"Skonwertowano kolumnę '{col}' na float")
+        except Exception as e:
+            logger.error(f"Błąd konwersji kolumny '{col}': {e}")
+    
+    return df_copy
+
 def run_pipeline_parallel(year=2024, branch="06", service="03", max_workers=10, save_as="NFZ_full_{}.xlsx"):
     """Główny pipeline z równoległym przetwarzaniem"""
     
@@ -258,6 +287,14 @@ def run_pipeline_parallel(year=2024, branch="06", service="03", max_workers=10, 
     if 'Kod produktu kontraktowanego' in df_final.columns:
         df_final['Kod produktu kontraktowanego'] = df_final['Kod produktu kontraktowanego'].str.split(' ').str[0]
     
+    # Konwersja kolumn numerycznych
+    numeric_cols = [
+        'Sumaryczna liczba kontraktu dla produktu',
+        'Sumaryczna kwota kontraktu dla produktu',
+        'Średnia cena produktu',
+    ]
+    df_final = convert_to_float(df_final, numeric_cols)
+    
     filename = save_as.format(year)
     df_final.to_excel(filename, index=False)
     logger.info(f"Zapisano {len(df_final)} wierszy do: {filename}")
@@ -268,7 +305,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='NFZ Data Scraper')
-    parser.add_argument('--year', type=int, default=2023, help='Rok do pobrania')
+    parser.add_argument('--year', type=int, default=2024, help='Rok do pobrania')
     parser.add_argument('--branch', type=str, default="06", help='Oddział NFZ')
     parser.add_argument('--service', type=str, default="03", help='Typ świadczenia')
     parser.add_argument('--workers', type=int, default=10, help='Liczba równoległych wątków')
