@@ -268,7 +268,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='NFZ Data Scraper')
-    parser.add_argument('--year', type=int, default=2024, help='Rok do pobrania')
+    parser.add_argument('--year', type=int, default=2023, help='Rok do pobrania')
     parser.add_argument('--branch', type=str, default="06", help='Oddział NFZ')
     parser.add_argument('--service', type=str, default="03", help='Typ świadczenia')
     parser.add_argument('--workers', type=int, default=10, help='Liczba równoległych wątków')
