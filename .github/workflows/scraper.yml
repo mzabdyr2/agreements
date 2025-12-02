@@ -1,0 +1,30 @@
+name: scraper
+
+on:
+  push:               # ← URUCHAMIA SIĘ OD RAZU PO PUSHU
+  workflow_dispatch:  # ← Przyciskiem “Run workflow”
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: tables
+          path: agreements.xlsx
